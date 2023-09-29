@@ -1,4 +1,4 @@
-import mongoose, { AnyObject, HydratedDocument, connect, model } from "mongoose";
+import mongoose, { HydratedDocument, connect, model } from "mongoose";
 import { response } from "express";
 require("dotenv").config();
 
@@ -20,6 +20,17 @@ interface Exercise {
     description: String;
     duration: Number;
     date?: String
+}
+
+interface Log {
+    username: String,
+    count: Number,
+    _id: Username["_id"],
+    log: [{
+        description: String,
+        duration: Number,
+        date?: String,
+    }]
 }
 
 // 3. create a schema corresponding to the document (rows) interface
@@ -53,7 +64,8 @@ export const createOrSaveUsernameToDb = async (username: string) => {
     const foundUsername = await Username.findOne({ username });
     let savedUsername: Username;
     if (foundUsername) {
-        return foundUsername;
+        savedUsername = foundUsername;
+        return savedUsername
     }
     // 8. otherwise, creating a new instance of a username and saving to db
     else {
@@ -91,6 +103,31 @@ export const createAndSaveExerciseToDb = async (userId: any, description: string
         }
         else {
             return response.status(400).send({ msg: "user ID not found" })
+        }
+    }
+    catch (err) {
+        return response.status(500).json({ error: "something went wrong" });
+    }
+}
+
+export const fetchExerciseLogs = async (userId: any) => {
+    const foundExercise: Exercise | null = await Exercise.findById(userId)
+
+    try {
+        if (foundExercise) {
+            let exerciseLog = {
+                username: foundExercise.username,
+                count: 29,
+                _id: foundExercise._id,
+                log: [{
+                    description: foundExercise.description,
+                    duration: foundExercise.duration,
+                    date: foundExercise.date ? new Date().toDateString() : new Date().toDateString()
+                }]
+            }
+            return exerciseLog
+        } else {
+            return response.status(400).send({ msg: "cannot retieve logs for this user ID" })
         }
     }
     catch (err) {

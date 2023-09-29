@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { requestCreateOrSaveUsernameToDb, getHtml, getAllUsers, postExerciseById } from "./app.controllers";
+import { requestCreateOrSaveUsernameToDb, getHtml, getAllUsers, postExerciseById, getExerciseLogById } from "./app.controllers";
 export const app = express();
 
 app.use(cors())
@@ -11,3 +11,4 @@ app.get('/', getHtml);
 app.post('/api/users', requestCreateOrSaveUsernameToDb)
 app.get('/api/users', getAllUsers)
 app.post('/api/users/:_id/exercises', postExerciseById)
+app.get('/api/users/:_id/logs', getExerciseLogById)

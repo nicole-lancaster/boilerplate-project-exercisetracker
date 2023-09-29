@@ -1,5 +1,5 @@
 import Express from "express"
-import { createAndSaveExerciseToDb, createOrSaveUsernameToDb, fetchAllUsers } from "./db/database";
+import { createAndSaveExerciseToDb, createOrSaveUsernameToDb, fetchAllUsers, fetchExerciseLogs } from "./db/database";
 
 export const getHtml = (_request: Express.Request, response: Express.Response) => {
     try {
@@ -40,5 +40,16 @@ export const postExerciseById = async (request: Express.Request, response: Expre
     }
     catch (err) {
         return response.status(500).json({ error: "unable to post exercise" });
+    }
+}
+
+export const getExerciseLogById = async (request: Express.Request, response: Express.Response) => {
+    const userId = request.params
+    try {
+        const exerciseLogs = await fetchExerciseLogs(userId)
+        return response.status(200).json(exerciseLogs)
+    }
+    catch (err) {
+        return response.status(500).json({ error: "unable to fetch exercise logs" });
     }
 }
