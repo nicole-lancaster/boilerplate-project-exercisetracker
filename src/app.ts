@@ -12,3 +12,4 @@ app.post('/api/users', requestCreateOrSaveUsernameToDb)
 app.get('/api/users', getAllUsers)
 app.post('/api/users/:_id/exercises', postExerciseById)
 app.get('/api/users/:_id/logs', getExerciseLogById)
+// GET /api/users/:_id/logs?from=<yyyy-mm-dd>&to=<yyyy-mm-dd&limit=<num>

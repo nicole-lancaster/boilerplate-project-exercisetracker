@@ -110,25 +110,33 @@ export const createAndSaveExerciseToDb = async (userId: any, description: string
     }
 }
 
-export const fetchExerciseLogs = async (userId: any) => {
-    const foundExercise: Exercise | null = await Exercise.findById(userId)
-    const numOfExercises = await Exercise.count({ _id: foundExercise?._id });
+export const fetchExerciseLogs = async (userId: any, from: any, to: any, limit: any) => {
     try {
-        if (foundExercise) {
+        const foundExercises = await Exercise.findById(userId)
+    
+     
+        
+     console.log("foundExercises -->", foundExercises?.date)
+        if (foundExercises) {
+            const tempDateFormat = new Date(`${foundExercises.date}`).toISOString().slice(0, 10)
+            console.log("tempDateFormat", tempDateFormat)
+            const numOfExercises = await Exercise.count({ _id: foundExercises?._id });
             let exerciseLog = {
-                username: foundExercise.username,
+                username: foundExercises.username,
                 count: numOfExercises,
-                _id: foundExercise._id,
+                _id: foundExercises._id,
                 log: [{
-                    description: foundExercise.description,
-                    duration: foundExercise.duration,
-                    date: foundExercise.date ? new Date().toDateString() : new Date().toDateString()
+                    description: foundExercises.description,
+                    duration: foundExercises.duration,
+                    date: foundExercises.date ? new Date().toDateString() : new Date().toDateString()
                 }]
             }
-            return exerciseLog
+            console.log("exercise log -->", exerciseLog)
+            return exerciseLog 
         } else {
-            return response.status(400).send({ msg: "cannot retieve logs for this user ID" })
+            return
         }
+
     }
     catch (err) {
         return response.status(500).json({ error: "something went wrong" });

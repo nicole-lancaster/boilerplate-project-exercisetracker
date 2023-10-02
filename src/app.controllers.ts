@@ -45,8 +45,10 @@ export const postExerciseById = async (request: Express.Request, response: Expre
 
 export const getExerciseLogById = async (request: Express.Request, response: Express.Response) => {
     const userId = request.params
+    const { from, to, limit } = request.query
+    console.log(request.query)
     try {
-        const exerciseLogs = await fetchExerciseLogs(userId)
+        const exerciseLogs = await fetchExerciseLogs(userId, from, to, limit)
         return response.status(200).json(exerciseLogs)
     }
     catch (err) {
