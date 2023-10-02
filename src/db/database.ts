@@ -112,12 +112,12 @@ export const createAndSaveExerciseToDb = async (userId: any, description: string
 
 export const fetchExerciseLogs = async (userId: any) => {
     const foundExercise: Exercise | null = await Exercise.findById(userId)
-
+    const numOfExercises = await Exercise.count({ _id: foundExercise?._id });
     try {
         if (foundExercise) {
             let exerciseLog = {
                 username: foundExercise.username,
-                count: 29,
+                count: numOfExercises,
                 _id: foundExercise._id,
                 log: [{
                     description: foundExercise.description,
