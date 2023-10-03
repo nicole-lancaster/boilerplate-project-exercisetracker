@@ -30,7 +30,7 @@ interface Log {
     log: {
         description: string,
         duration: number,
-        date?: string,
+        date?: string | Date,
     }[]
 }
 
@@ -119,34 +119,40 @@ export const fetchExerciseLogs = async (
 ) => {
     try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const exerciseQuery: any = { username: userId }
+        const exerciseQuery: any = { _id: userId };
+
         if (from && to) {
             const fromDate = new Date(from);
+            const fromDateUnix = fromDate.getTime()
             const toDate = new Date(to);
-            exerciseQuery.date = { $gte: fromDate, $lte: toDate };
+            const toDateUnix = toDate.getTime()
+            exerciseQuery.date = { $gte: fromDateUnix, $lte: toDateUnix };
         }
 
         const limitNumber = parseInt(limit || "", 10);
 
-        if (!isNaN(limitNumber)) {
-            const foundExercises = await Exercise.find(exerciseQuery).limit(limitNumber);
-            const numOfExercises = foundExercises.length;
-            const exerciseLog: Log = {
-                username: foundExercises[0].username,
-                count: numOfExercises,
-                _id: foundExercises[0]._id,
-                log: foundExercises.map((exercise) => ({
-                    description: exercise.description,
-                    duration: exercise.duration,
-                    date: exercise.date ? exercise.date : new Date().toDateString(),
-                })),
-            };
+        let query = Exercise.find(exerciseQuery);
 
-            return exerciseLog;
-        } else {
-            return response.status(404).json({ error: "No exercises found" });
+        if (!isNaN(limitNumber)) {
+            query = query.limit(limitNumber);
         }
+
+        const foundExercises = await query;
+        const numOfExercises = foundExercises.length;
+        const exerciseLog: Log = {
+            username: foundExercises[0].username,
+            count: numOfExercises >= 1 ? numOfExercises : 0,
+            _id: foundExercises[0]._id,
+            log: foundExercises.map((exercise) => ({
+                description: exercise.description,
+                duration: exercise.duration,
+                date: exercise.date ? new Date(exercise.date).toDateString() : new Date().toDateString(),
+            })),
+        };
+        return exerciseLog;
     } catch (err) {
         return response.status(500).json({ error: "something went wrong" });
     }
 };
+
+
