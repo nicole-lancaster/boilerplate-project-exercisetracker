@@ -89,9 +89,9 @@ export const fetchAllUsers = async () => {
 
 // 10. adding and saving exercises data based on user ID
 export const createAndSaveExerciseToDb = async (userId: string, description: string, duration: number, date: string) => {
+    const foundUser: Username | null = await Username.findById(userId)
     try {
-        const foundUser: Username | null = await Username.findById(userId)
-        if (foundUser && userId !== undefined) {
+        if (foundUser) {
             const newExercise: HydratedDocument<Exercise> = new Exercise({
                 _id: foundUser._id,
                 username: foundUser.username,
@@ -119,8 +119,7 @@ export const fetchExerciseLogs = async (
 ) => {
     try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const exerciseQuery: Record<string, any> = { username: userId };
-
+        const exerciseQuery: any = { username: userId }
         if (from && to) {
             const fromDate = new Date(from);
             const toDate = new Date(to);
