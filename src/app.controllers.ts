@@ -32,7 +32,7 @@ export const getAllUsers = async (request: Express.Request, response: Express.Re
 }
 
 export const postExerciseById = async (request: Express.Request, response: Express.Response) => {
-    const userId = request.params
+    const userId = request.params._id
     const { description, duration, date } = request.body
     try {
         const savedExerciseData = await createAndSaveExerciseToDb(userId, description, duration, date)
@@ -45,7 +45,11 @@ export const postExerciseById = async (request: Express.Request, response: Expre
 
 export const getExerciseLogById = async (request: Express.Request, response: Express.Response) => {
     const userId = request.params._id
-    const { from, to, limit } = request.query
+    // Tech debt
+    const from = request.query.from as string | undefined
+    const to = request.query.to as string | undefined
+    const limit = request.query.limit as string | undefined
+
     try {
         const exerciseLogs = await fetchExerciseLogs(userId, from, to, limit)
         return response.status(200).json(exerciseLogs)

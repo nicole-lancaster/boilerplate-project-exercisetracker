@@ -1,6 +1,7 @@
 import mongoose, { HydratedDocument, connect, model } from "mongoose";
 import { response } from "express";
-require("dotenv").config();
+import { config } from "dotenv"
+config();
 
 // 1. defining the type (shape) of the env variables
 type EnvVariables = {
@@ -9,28 +10,28 @@ type EnvVariables = {
 
 // 2. creating an interface representing a document in MongoDB
 interface Username {
-    _id: String;
+    _id: string;
     username: string;
     versionKey: false;
 }
 
 interface Exercise {
     _id: Username["_id"]
-    username: String,
-    description: String;
-    duration: Number;
-    date?: String
+    username: string,
+    description: string;
+    duration: number;
+    date?: string
 }
 
 interface Log {
-    username: String,
-    count: Number,
+    username: string,
+    count: number,
     _id: Username["_id"],
-    log: [{
-        description: String,
-        duration: Number,
-        date?: String,
-    }]
+    log: {
+        description: string,
+        duration: number,
+        date?: string,
+    }[]
 }
 
 // 3. create a schema corresponding to the document (rows) interface
@@ -69,9 +70,9 @@ export const createOrSaveUsernameToDb = async (username: string) => {
     }
     // 8. otherwise, creating a new instance of a username and saving to db
     else {
-        let newUsername: HydratedDocument<Username> = new Username({ username });
-        let currentObjId = newUsername._id
-        let newObjIdString = currentObjId.toString()
+        const newUsername: HydratedDocument<Username> = new Username({ username });
+        const currentObjId = newUsername._id
+        const newObjIdString = currentObjId.toString()
         savedUsername = await newUsername.save();
         const foundNewlySavedUsername = await Username.findOne(
             { username, _id: newObjIdString }
@@ -87,18 +88,18 @@ export const fetchAllUsers = async () => {
 }
 
 // 10. adding and saving exercises data based on user ID
-export const createAndSaveExerciseToDb = async (userId: any, description: string, duration: number, date: string) => {
+export const createAndSaveExerciseToDb = async (userId: string, description: string, duration: number, date: string) => {
     try {
         const foundUser: Username | null = await Username.findById(userId)
         if (foundUser && userId !== undefined) {
-            let newExercise: HydratedDocument<Exercise> = new Exercise({
+            const newExercise: HydratedDocument<Exercise> = new Exercise({
                 _id: foundUser._id,
                 username: foundUser.username,
                 description: description,
                 duration: duration,
                 date: date ? new Date(date).toDateString() : new Date().toDateString()
             })
-            let savedExerciseData: Exercise = await newExercise.save()
+            const savedExerciseData: Exercise = await newExercise.save()
             return savedExerciseData
         }
         else {
@@ -110,23 +111,28 @@ export const createAndSaveExerciseToDb = async (userId: any, description: string
     }
 }
 
-export const fetchExerciseLogs = async (userId: any, from?: any, to?: any, limit?: any) => {
+export const fetchExerciseLogs = async (
+    userId: string,
+    from?: string,
+    to?: string,
+    limit?: string
+) => {
     try {
-        const exerciseQuery: any = { username: userId }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const exerciseQuery: Record<string, any> = { username: userId };
+
         if (from && to) {
-            const fromDate = new Date(from)
-            const toDate = new Date(to)
-            exerciseQuery.exerciseQuery.date = { $gte: fromDate, $lte: toDate }
-        }
-        const limitNumber = parseInt(limit)
-        if (!isNaN(limitNumber)) {
-            exerciseQuery.limit = limitNumber
+            const fromDate = new Date(from);
+            const toDate = new Date(to);
+            exerciseQuery.date = { $gte: fromDate, $lte: toDate };
         }
 
-        const foundExercises = await Exercise.find(exerciseQuery)
-        if (foundExercises) {
+        const limitNumber = parseInt(limit || "", 10);
+
+        if (!isNaN(limitNumber)) {
+            const foundExercises = await Exercise.find(exerciseQuery).limit(limitNumber);
             const numOfExercises = foundExercises.length;
-            let exerciseLog = {
+            const exerciseLog: Log = {
                 username: foundExercises[0].username,
                 count: numOfExercises,
                 _id: foundExercises[0]._id,
@@ -135,14 +141,13 @@ export const fetchExerciseLogs = async (userId: any, from?: any, to?: any, limit
                     duration: exercise.duration,
                     date: exercise.date ? exercise.date : new Date().toDateString(),
                 })),
-            }
-            return exerciseLog
+            };
+
+            return exerciseLog;
         } else {
             return response.status(404).json({ error: "No exercises found" });
         }
-
-    }
-    catch (err) {
+    } catch (err) {
         return response.status(500).json({ error: "something went wrong" });
     }
-}
+};
