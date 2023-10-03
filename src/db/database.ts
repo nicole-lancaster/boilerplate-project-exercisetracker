@@ -110,31 +110,35 @@ export const createAndSaveExerciseToDb = async (userId: any, description: string
     }
 }
 
-export const fetchExerciseLogs = async (userId: any, from: any, to: any, limit: any) => {
+export const fetchExerciseLogs = async (userId: any, from?: any, to?: any, limit?: any) => {
     try {
-        const foundExercises = await Exercise.findById(userId)
-    
-     
-        
-     console.log("foundExercises -->", foundExercises?.date)
+        const exerciseQuery: any = { username: userId }
+        if (from && to) {
+            const fromDate = new Date(from)
+            const toDate = new Date(to)
+            exerciseQuery.exerciseQuery.date = { $gte: fromDate, $lte: toDate }
+        }
+        const limitNumber = parseInt(limit)
+        if (!isNaN(limitNumber)) {
+            exerciseQuery.limit = limitNumber
+        }
+
+        const foundExercises = await Exercise.find(exerciseQuery)
         if (foundExercises) {
-            const tempDateFormat = new Date(`${foundExercises.date}`).toISOString().slice(0, 10)
-            console.log("tempDateFormat", tempDateFormat)
-            const numOfExercises = await Exercise.count({ _id: foundExercises?._id });
+            const numOfExercises = foundExercises.length;
             let exerciseLog = {
-                username: foundExercises.username,
+                username: foundExercises[0].username,
                 count: numOfExercises,
-                _id: foundExercises._id,
-                log: [{
-                    description: foundExercises.description,
-                    duration: foundExercises.duration,
-                    date: foundExercises.date ? new Date().toDateString() : new Date().toDateString()
-                }]
+                _id: foundExercises[0]._id,
+                log: foundExercises.map((exercise) => ({
+                    description: exercise.description,
+                    duration: exercise.duration,
+                    date: exercise.date ? exercise.date : new Date().toDateString(),
+                })),
             }
-            console.log("exercise log -->", exerciseLog)
-            return exerciseLog 
+            return exerciseLog
         } else {
-            return
+            return response.status(404).json({ error: "No exercises found" });
         }
 
     }
