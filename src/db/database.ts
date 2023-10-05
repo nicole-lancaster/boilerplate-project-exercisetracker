@@ -123,33 +123,35 @@ export const fetchExerciseLogs = async (
 
         if (from && to) {
             const fromDate = new Date(from);
-            const fromDateUnix = fromDate.getTime()
             const toDate = new Date(to);
-            const toDateUnix = toDate.getTime()
-            exerciseQuery.date = { $gte: fromDateUnix, $lte: toDateUnix };
+            exerciseQuery.date = { $gte: fromDate, $lte: toDate };
         }
 
         const limitNumber = parseInt(limit || "", 10);
 
-        let query = Exercise.find(exerciseQuery);
-
         if (!isNaN(limitNumber)) {
-            query = query.limit(limitNumber);
+            exerciseQuery.limit = limitNumber;
+        }
+        const foundExercises: HydratedDocument<Exercise>[] = await Exercise.find(exerciseQuery)
+
+        const numOfExercises:number = foundExercises.length;
+        let logArray = foundExercises.map((exercise) => ({
+            description: exercise.description,
+            duration: exercise.duration,
+            date: exercise.date ? new Date(exercise.date).toDateString() : new Date().toDateString(),
+        }))
+
+        if (logArray.length > limitNumber) {
+            logArray = logArray.slice(0, limitNumber)
         }
 
-        const foundExercises = await query;
-        const numOfExercises = foundExercises.length;
         const exerciseLog: Log = {
             username: foundExercises[0].username,
             count: numOfExercises >= 1 ? numOfExercises : 0,
             _id: foundExercises[0]._id,
-            log: foundExercises.map((exercise) => ({
-                description: exercise.description,
-                duration: exercise.duration,
-                date: exercise.date ? new Date(exercise.date).toDateString() : new Date().toDateString(),
-            })),
+            log: logArray
         };
-        return exerciseLog;
+        return exerciseLog
     } catch (err) {
         return response.status(500).json({ error: "something went wrong" });
     }
