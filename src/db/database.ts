@@ -117,12 +117,12 @@ export const createAndSaveExerciseToDb = async (userId: string, description: str
     if (user) {
         const exerciseObjAndUsername: newExerciseObj = new newExerciseObj({
             username: user.username,
-            ...exerciseDetails,
-            _id: user._id,
+            ...exerciseDetails
         })
         const savedExercise = await exerciseObjAndUsername.save()
         return savedExercise
     } else {
+        console.log("in here :(")
         return
     }
 }
@@ -142,7 +142,7 @@ export const fetchExerciseLogs = async (
         exerciseQuery.username = foundId.username;
     }
 
-    // if there are request queries for date, add those to the query
+    // if there are request queries for date, add those to the query object
     if (from && to) {
         const fromDate = new Date(from);
         const toDate = new Date(to);
@@ -162,14 +162,24 @@ export const fetchExerciseLogs = async (
     console.log("exerciseQuery -->", exerciseQuery)
     console.log("foundExercises -->", foundExercises)
 
-    const numOfExercises: number = foundExercises.length;
-    console.log("numOfExercises -->", numOfExercises)
+    let logArray: ExerciseDetails[] | undefined = foundExercises.map((exercise) => {
+        return {
+            duration: exercise.duration,
+            date: exercise.date,
+            description: exercise.description,
+        };
+    })
+    
+    if (limitNumber) {
+        logArray = logArray.slice(0, limitNumber + 1)
+    }
 
-    const logArray: ExerciseDetails[] | undefined = foundExercises ? foundExercises : []
+    const numOfExercises: number = logArray.length;
+    console.log("logArray -->", logArray)
 
     const exerciseLog: FetchExerciseLogsResult = {
         username: foundExercises[0]?.username || "no username found",
-        count: numOfExercises >= 1 ? numOfExercises : 0,
+        count: numOfExercises,
         _id: userId,
         log: logArray
     }

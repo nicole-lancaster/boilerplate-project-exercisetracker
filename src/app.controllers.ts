@@ -40,6 +40,7 @@ export const postExerciseById = async (request: Express.Request, response: Expre
         return response.status(200).send(savedExerciseData)
     }
     catch (err) {
+        console.log(err)
         return response.status(500).json({ error: "unable to post exercise" });
     }
 }
