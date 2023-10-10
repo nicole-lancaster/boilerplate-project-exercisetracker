@@ -157,11 +157,8 @@ export const fetchExerciseLogs = async (
 
     // find all exercises in the db that match the username and any date and/or limit queries
     const foundExercises: HydratedDocument<newExerciseObj>[] = await newExerciseObj.find(exerciseQuery).limit(limitNumber).exec()
-    console.log("exerciseQuery -->", exerciseQuery)
-    console.log("foundExercises -->", foundExercises)
 
     const numOfExercises: number = foundExercises.length;
-    console.log("numOfExercises -->", numOfExercises)
 
     const logArray: ExerciseDetails[] | undefined = foundExercises ? foundExercises : []
 
@@ -171,7 +168,6 @@ export const fetchExerciseLogs = async (
         _id: userId,
         log: logArray
     }
-    console.log("exerciseLog -->", exerciseLog)
 
     return exerciseLog
 };
