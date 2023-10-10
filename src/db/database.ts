@@ -19,9 +19,17 @@ interface User {
 }
 
 interface ExerciseDetails {
-    description: string | undefined;
-    duration: number | undefined;
-    date: string | Date | undefined
+    description?: string;
+    duration?: number | undefined;
+    date?: string | Date | undefined
+}
+
+interface newExerciseObj {
+    _id: User["_id"]
+    username?: User["username"]
+    description?: string | undefined;
+    duration?: number | undefined;
+    date?: string | Date | undefined
 }
 
 interface FetchExerciseLogsResult {
@@ -32,6 +40,11 @@ interface FetchExerciseLogsResult {
 }
 
 type ExerciseLog = ExerciseDetails[] | undefined;
+
+interface exerciseQuery {
+    username?: string,
+    date?: string | Date | object
+}
 
 // 3. create a schema corresponding to the document (rows) interface
 const UserSchema = new mongoose.Schema<User>(
@@ -44,9 +57,19 @@ const UserSchema = new mongoose.Schema<User>(
     { versionKey: false },
 );
 
+const ExerciseSchema = new mongoose.Schema<newExerciseObj>(
+    {
+        username: { type: String, required: true },
+        description: { type: String, required: true },
+        duration: { type: Number, required: true },
+        date: { type: String, required: false },
+    },
+    { versionKey: false },
+);
+
 // 4. create a model - this allows you to create instances of your objects, called documents
 const User = model<User>("Username", UserSchema);
-// const Exercise = model<Exercise>("Exercise", exerciseSchema);
+const newExerciseObj = model<newExerciseObj>("Exercise", ExerciseSchema);
 
 // 5. connecting to mongoDB
 connect((process.env as EnvVariables).MONGO_URI);
@@ -89,17 +112,17 @@ export const createAndSaveExerciseToDb = async (userId: string, description: str
     const user: User | null = await User.findById(
         { _id: userId }
     )
+
     if (user) {
-        if (user) {
-            user.description = exerciseDetails.description
-            user.duration = exerciseDetails.duration
-            user.date = exerciseDetails.date
+        const exerciseObjAndUsername: newExerciseObj = {
+            username: user.username,
+            _id: userId,
+            ...exerciseDetails
         }
+        return exerciseObjAndUsername
+    } else {
+        return
     }
-    const updateUserObj = await User.findByIdAndUpdate(
-        { _id: userId }, { ...user }, { new: true }
-    )
-    return updateUserObj
 }
 
 export const fetchExerciseLogs = async (
@@ -109,7 +132,12 @@ export const fetchExerciseLogs = async (
     limit?: string
 ): Promise<FetchExerciseLogsResult | undefined> => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const exerciseQuery: any = { _id: userId };
+    const foundId: User | null = await User.findById(userId)
+
+    const exerciseQuery: exerciseQuery = {}
+    if (foundId) {
+        exerciseQuery.username = foundId.username;
+    }
 
     if (from && to) {
         const fromDate = new Date(from);
@@ -120,22 +148,17 @@ export const fetchExerciseLogs = async (
     if (limit) {
         limitNumber = parseInt(limit);
     } else {
-        limitNumber = 1000
+        limitNumber = 9000
     }
-    console.log("limitNumber -->", limitNumber)
+    console.log("exerciseQuery --->", exerciseQuery)
 
-    const foundExercises: HydratedDocument<User>[] = await User.find(exerciseQuery).limit(limitNumber)
+    const foundExercises: HydratedDocument<User>[] = await User.find(exerciseQuery).limit(limitNumber).exec()
     console.log("foundExercises -->", foundExercises)
 
     const numOfExercises: number = foundExercises.length;
     console.log("numOfExercises -->", numOfExercises)
 
-    const logArray: ExerciseDetails[] = foundExercises.map((exercise) => ({
-        description: exercise.description,
-        duration: exercise.duration,
-        date: exercise.date ? new Date(exercise.date).toDateString() : new Date().toDateString(),
-    }))
-    console.log("logArray -->", logArray)
+    const logArray: ExerciseDetails[] | undefined = foundExercises ? foundExercises : []
 
     const exerciseLog: FetchExerciseLogsResult = {
         username: foundExercises[0].username,

@@ -53,6 +53,7 @@ export const getExerciseLogById = async (request: Express.Request, response: Exp
         return response.status(200).json(exerciseLogs)
     }
     catch (err) {
+        console.log("error -->", err)
         return response.status(500).json({ error: "unable to fetch exercise logs" });
     }
 }
