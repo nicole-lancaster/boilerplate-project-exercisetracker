@@ -134,25 +134,30 @@ export const fetchExerciseLogs = async (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const foundId: User | null = await User.findById(userId)
 
+    // using username to find exercises associated with it
     const exerciseQuery: exerciseQuery = {}
     if (foundId) {
         exerciseQuery.username = foundId.username;
     }
 
+    // if there are request queries for date, add those to the query
     if (from && to) {
         const fromDate = new Date(from);
         const toDate = new Date(to);
         exerciseQuery.date = { $gte: fromDate, $lte: toDate };
     }
+
+    // if there is a limit query, change it to a number
     let limitNumber: number
     if (limit) {
-        limitNumber = parseInt(limit);
+        limitNumber = parseFloat(limit);
     } else {
         limitNumber = 9000
     }
-    console.log("exerciseQuery --->", exerciseQuery)
 
-    const foundExercises: HydratedDocument<User>[] = await User.find(exerciseQuery).limit(limitNumber).exec()
+    // find all exercises in the db that match the username and any date and/or limit queries
+    const foundExercises: HydratedDocument<newExerciseObj>[] = await newExerciseObj.find(exerciseQuery).limit(limitNumber).exec()
+    console.log("exerciseQuery -->", exerciseQuery)
     console.log("foundExercises -->", foundExercises)
 
     const numOfExercises: number = foundExercises.length;
@@ -161,11 +166,11 @@ export const fetchExerciseLogs = async (
     const logArray: ExerciseDetails[] | undefined = foundExercises ? foundExercises : []
 
     const exerciseLog: FetchExerciseLogsResult = {
-        username: foundExercises[0].username,
+        username: foundExercises[0]?.username || "no username found",
         count: numOfExercises >= 1 ? numOfExercises : 0,
-        _id: foundExercises[0]._id,
+        _id: userId,
         log: logArray
-    };
+    }
     console.log("exerciseLog -->", exerciseLog)
 
     return exerciseLog
