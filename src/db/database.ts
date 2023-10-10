@@ -25,6 +25,7 @@ interface ExerciseDetails {
 }
 
 interface newExerciseObj {
+    save(): unknown;
     _id: User["_id"]
     username?: User["username"]
     description?: string | undefined;
@@ -114,12 +115,13 @@ export const createAndSaveExerciseToDb = async (userId: string, description: str
     )
 
     if (user) {
-        const exerciseObjAndUsername: newExerciseObj = {
+        const exerciseObjAndUsername: newExerciseObj = new newExerciseObj({
             username: user.username,
             ...exerciseDetails,
             _id: user._id,
-        }
-        return exerciseObjAndUsername
+        })
+        const savedExercise = await exerciseObjAndUsername.save()
+        return savedExercise
     } else {
         return
     }
@@ -157,8 +159,11 @@ export const fetchExerciseLogs = async (
 
     // find all exercises in the db that match the username and any date and/or limit queries
     const foundExercises: HydratedDocument<newExerciseObj>[] = await newExerciseObj.find(exerciseQuery).limit(limitNumber).exec()
+    console.log("exerciseQuery -->", exerciseQuery)
+    console.log("foundExercises -->", foundExercises)
 
     const numOfExercises: number = foundExercises.length;
+    console.log("numOfExercises -->", numOfExercises)
 
     const logArray: ExerciseDetails[] | undefined = foundExercises ? foundExercises : []
 
@@ -168,6 +173,7 @@ export const fetchExerciseLogs = async (
         _id: userId,
         log: logArray
     }
+    console.log("exerciseLog -->", exerciseLog)
 
     return exerciseLog
 };
