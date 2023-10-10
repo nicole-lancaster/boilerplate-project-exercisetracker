@@ -117,7 +117,6 @@ export const createAndSaveExerciseToDb = async (userId: string, description: str
     if (user) {
         const exerciseObjAndUsername: newExerciseObj = new newExerciseObj({
             username: user.username,
-            _id: user._id,
             ...exerciseDetails
         })
         const savedExercise = await exerciseObjAndUsername.save()
@@ -170,7 +169,7 @@ export const fetchExerciseLogs = async (
             date: exercise.date,
         };
     })
-
+    
     if (limitNumber) {
         logArray = logArray.slice(0, limitNumber + 1)
     }
