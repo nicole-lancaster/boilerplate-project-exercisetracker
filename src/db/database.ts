@@ -20,8 +20,8 @@ interface User {
 
 interface ExerciseDetails {
     description?: string;
-    duration?: number | undefined;
-    date?: string | Date | undefined
+    duration?: number;
+    date?: string | Date
 }
 
 interface newExerciseObj {
@@ -103,10 +103,10 @@ export const fetchAllUsers = async () => {
 }
 
 // 10. adding and saving exercises data based on user ID
-export const createAndSaveExerciseToDb = async (userId: string, description: string, duration: number, date: string) => {
+export const createAndSaveExerciseToDb = async (userId: string, description: string, durationNum: number, date: string) => {
     const exerciseDetails: ExerciseDetails = {
         description: description,
-        duration: duration,
+        duration: durationNum,
         date: date ? new Date(date).toDateString() : new Date().toDateString()
     }
     const user: User | null = await User.findById(
@@ -116,8 +116,8 @@ export const createAndSaveExerciseToDb = async (userId: string, description: str
     if (user) {
         const exerciseObjAndUsername: newExerciseObj = {
             username: user.username,
-            _id: userId,
-            ...exerciseDetails
+            ...exerciseDetails,
+            _id: user._id,
         }
         return exerciseObjAndUsername
     } else {

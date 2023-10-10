@@ -34,9 +34,10 @@ export const getAllUsers = async (request: Express.Request, response: Express.Re
 export const postExerciseById = async (request: Express.Request, response: Express.Response) => {
     const userId = request.params._id
     const { description, duration, date } = request.body
+    const durationNum: number = parseFloat(duration)
     try {
-        const savedExerciseData = await createAndSaveExerciseToDb(userId, description, duration, date)
-        return response.status(200).json(savedExerciseData)
+        const savedExerciseData = await createAndSaveExerciseToDb(userId, description, durationNum, date)
+        return response.status(200).send(savedExerciseData)
     }
     catch (err) {
         return response.status(500).json({ error: "unable to post exercise" });
