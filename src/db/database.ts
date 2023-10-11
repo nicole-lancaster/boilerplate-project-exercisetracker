@@ -24,10 +24,9 @@ interface ExerciseDetails {
     date?: string | Date
 }
 
-interface newExerciseObj {
-    save(): unknown;
-    _id: User["_id"]
-    username?: User["username"]
+interface Exercise {
+    _id: string;
+    username?: User["username"];
     description?: string | undefined;
     duration?: number | undefined;
     date?: string | Date | undefined
@@ -58,7 +57,7 @@ const UserSchema = new mongoose.Schema<User>(
     { versionKey: false },
 );
 
-const ExerciseSchema = new mongoose.Schema<newExerciseObj>(
+const ExerciseSchema = new mongoose.Schema<Exercise>(
     {
         username: { type: String, required: true },
         description: { type: String, required: true },
@@ -69,8 +68,8 @@ const ExerciseSchema = new mongoose.Schema<newExerciseObj>(
 );
 
 // 4. create a model - this allows you to create instances of your objects, called documents
-const User = model<User>("Username", UserSchema);
-const newExerciseObj = model<newExerciseObj>("Exercise", ExerciseSchema);
+const UserModel = model<User>("Username", UserSchema);
+const ExerciseModel = model<Exercise>("Exercise", ExerciseSchema);
 
 // 5. connecting to mongoDB
 connect((process.env as EnvVariables).MONGO_URI);
@@ -78,7 +77,7 @@ connect((process.env as EnvVariables).MONGO_URI);
 // 6. checking if user inputted url is already in db
 export const createOrSaveUsernameToDb = async (username: string) => {
     // 7. if it is, return that one already saved to the user
-    const foundUsername = await User.findOne({ username });
+    const foundUsername = await UserModel.findOne({ username });
     let savedUsername: User;
     if (foundUsername) {
         savedUsername = foundUsername;
@@ -86,11 +85,11 @@ export const createOrSaveUsernameToDb = async (username: string) => {
     }
     // 8. otherwise, creating a new instance of a username and saving to db
     else {
-        const newUsername: HydratedDocument<User> = new User({ username });
+        const newUsername: HydratedDocument<User> = new UserModel({ username });
         const currentObjId = newUsername._id
         const newObjIdString = currentObjId.toString()
         savedUsername = await newUsername.save();
-        const foundNewlySavedUsername = await User.findOne(
+        const foundNewlySavedUsername = await UserModel.findOne(
             { username, _id: newObjIdString }
         );
         return foundNewlySavedUsername;
@@ -99,7 +98,7 @@ export const createOrSaveUsernameToDb = async (username: string) => {
 
 // 9. returning a list of all saved users
 export const fetchAllUsers = async () => {
-    const fetchedUsers: User[] = await User.find()
+    const fetchedUsers: User[] = await UserModel.find()
     return fetchedUsers
 }
 
@@ -110,19 +109,23 @@ export const createAndSaveExerciseToDb = async (userId: string, description: str
         duration: durationNum,
         date: date ? new Date(date).toDateString() : new Date().toDateString()
     }
-    const user: User | null = await User.findById(
-        { _id: userId }
-    )
+
+
+
+    // finding the user object by their ID
+    const newId = new mongoose.Types.ObjectId(userId);
+    const user: User | null = await UserModel.findById(newId)
 
     if (user) {
-        const exerciseObjAndUsername: newExerciseObj = new newExerciseObj({
+
+        const exerciseObjAndUsername = new ExerciseModel({
             username: user.username,
             ...exerciseDetails
         })
         const savedExercise = await exerciseObjAndUsername.save()
         return savedExercise
     } else {
-        console.log("in here :(")
+        console.log(`User ${userId} was not found`)
         return
     }
 }
@@ -134,7 +137,7 @@ export const fetchExerciseLogs = async (
     limit?: string
 ): Promise<FetchExerciseLogsResult | undefined> => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const foundId: User | null = await User.findById(userId)
+    const foundId: User | null = await UserModel.findById(userId)
 
     // using username to find exercises associated with it
     const exerciseQuery: exerciseQuery = {}
@@ -158,9 +161,7 @@ export const fetchExerciseLogs = async (
     }
 
     // find all exercises in the db that match the username and any date and/or limit queries
-    const foundExercises: HydratedDocument<newExerciseObj>[] = await newExerciseObj.find(exerciseQuery).limit(limitNumber).exec()
-    console.log("exerciseQuery -->", exerciseQuery)
-    console.log("foundExercises -->", foundExercises)
+    const foundExercises = await ExerciseModel.find(exerciseQuery).limit(limitNumber).exec()
 
     let logArray: ExerciseDetails[] | undefined = foundExercises.map((exercise) => {
         return {
@@ -169,13 +170,12 @@ export const fetchExerciseLogs = async (
             date: exercise.date,
         };
     })
-    
+    // if there's a limit query - return log array no longer than the limit
     if (limitNumber) {
         logArray = logArray.slice(0, limitNumber + 1)
     }
 
     const numOfExercises: number = logArray.length;
-    console.log("logArray -->", logArray)
 
     const exerciseLog: FetchExerciseLogsResult = {
         username: foundExercises[0]?.username || "no username found",
@@ -183,8 +183,6 @@ export const fetchExerciseLogs = async (
         _id: userId,
         log: logArray
     }
-    console.log("exerciseLog -->", exerciseLog)
-
     return exerciseLog
 };
 

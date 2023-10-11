@@ -37,10 +37,11 @@ export const postExerciseById = async (request: Express.Request, response: Expre
     const durationNum: number = parseFloat(duration)
     try {
         const savedExerciseData = await createAndSaveExerciseToDb(userId, description, durationNum, date)
+        console.log("savedExerciseData", savedExerciseData)
         return response.status(200).send(savedExerciseData)
     }
     catch (err) {
-        console.log(err)
+        console.log("error -->", err)
         return response.status(500).json({ error: "unable to post exercise" });
     }
 }
@@ -52,6 +53,7 @@ export const getExerciseLogById = async (request: Express.Request, response: Exp
     const limit = request.query.limit as string | undefined
     try {
         const exerciseLogs = await fetchExerciseLogs(userId, from, to, limit)
+        console.log("exerciseLogs -->", exerciseLogs)
         return response.status(200).json(exerciseLogs)
     }
     catch (err) {
