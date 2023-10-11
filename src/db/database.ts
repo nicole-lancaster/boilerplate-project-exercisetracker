@@ -15,7 +15,6 @@ interface User {
     duration?: number;
     date?: string | Date
     versionKey: false;
-    log?: ExerciseLog;
 }
 
 interface ExerciseDetails {
@@ -53,6 +52,7 @@ const UserSchema = new mongoose.Schema<User>(
         description: { type: String, required: false },
         duration: { type: Number, required: false },
         date: { type: String, required: false },
+        // exercises?: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Exercise' }],
     },
     { versionKey: false },
 );
@@ -110,20 +110,21 @@ export const createAndSaveExerciseToDb = async (userId: string, description: str
         date: date ? new Date(date).toDateString() : new Date().toDateString()
     }
 
-
-
     // finding the user object by their ID
     const newId = new mongoose.Types.ObjectId(userId);
     const user: User | null = await UserModel.findById(newId)
 
     if (user) {
+        user.description = exerciseDetails.description
+        user.duration = exerciseDetails.duration
+        user.date = exerciseDetails.date
 
         const exerciseObjAndUsername = new ExerciseModel({
             username: user.username,
             ...exerciseDetails
         })
-        const savedExercise = await exerciseObjAndUsername.save()
-        return savedExercise
+        await exerciseObjAndUsername.save()
+        return user
     } else {
         console.log(`User ${userId} was not found`)
         return
