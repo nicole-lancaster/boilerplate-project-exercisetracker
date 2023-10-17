@@ -159,10 +159,11 @@ export const fetchExerciseLogs = async (
     const foundExercises = await ExerciseModel.find(exerciseQuery).limit(limitNumber).exec()
 
     const logArray: ExerciseDetails[] | undefined = foundExercises.map((exercise) => {
+        const d = exercise.date ? new Date(exercise.date) : undefined
         return {
             description: exercise.description,
             duration: exercise.duration,
-            date: exercise.date,
+            date: d?.toDateString(),
         };
     })
 
