@@ -35,7 +35,7 @@ interface FetchExerciseLogsResult {
     username: string,
     count: number,
     _id: User["_id"],
-    log: ExerciseLog
+    log: ExerciseLog | string
 }
 
 type ExerciseLog = ExerciseDetails[] | undefined;
@@ -148,41 +148,36 @@ export const fetchExerciseLogs = async (
 
     // if there are request queries for date, add those to the query object
     if (from && to) {
-        const fromDate = new Date(from);
-        const toDate = new Date(to);
+        const fromDate = new Date(from).toDateString()
+        const toDate = new Date(to).toDateString()
         exerciseQuery.date = { $gte: fromDate, $lte: toDate };
     }
 
     // if there is a limit query, change it to a number
-    let limitNumber: number
+    let limitNumber: number = 9999
     if (limit) {
         limitNumber = parseFloat(limit);
-    } else {
-        limitNumber = 9000
     }
+    console.log("exerciseQuery", exerciseQuery)
 
     // find all exercises in the db that match the username and any date and/or limit queries
     const foundExercises = await ExerciseModel.find(exerciseQuery).limit(limitNumber).exec()
-
-    let logArray: ExerciseDetails[] | undefined = foundExercises.map((exercise) => {
+    console.log("limit number", limitNumber)
+    const logArray: ExerciseDetails[] | undefined = foundExercises.map((exercise) => {
         return {
             description: exercise.description,
             duration: exercise.duration,
             date: exercise.date,
         };
     })
-    // if there's a limit query - return log array no longer than the limit
-    if (limitNumber) {
-        logArray = logArray.slice(0, limitNumber + 1)
-    }
 
     const numOfExercises: number = logArray.length;
 
     const exerciseLog: FetchExerciseLogsResult = {
-        username: foundExercises[0]?.username || "no username found",
+        username: foundExercises[0]?.username || "",
         count: numOfExercises,
         _id: userId,
-        log: logArray
+        log: logArray.length > 0 ? logArray : []
     }
     return exerciseLog
 };
