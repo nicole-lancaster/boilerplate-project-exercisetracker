@@ -20,7 +20,7 @@ interface User {
 interface ExerciseDetails {
     description?: string;
     duration?: number;
-    date?: string | Date
+    date?: string;
 }
 
 interface Exercise {
@@ -28,7 +28,7 @@ interface Exercise {
     username?: User["username"];
     description?: string | undefined;
     duration?: number | undefined;
-    date?: string | Date | undefined
+    date?: string | undefined
 }
 
 interface FetchExerciseLogsResult {
@@ -39,11 +39,6 @@ interface FetchExerciseLogsResult {
 }
 
 type ExerciseLog = ExerciseDetails[] | undefined;
-
-interface ExerciseQuery {
-    username?: string,
-    date?: string | Date | object
-}
 
 // 3. create a schema corresponding to the document (rows) interface
 const UserSchema = new mongoose.Schema<User>(
@@ -104,10 +99,11 @@ export const fetchAllUsers = async () => {
 
 // 10. adding and saving exercises data based on user ID
 export const createAndSaveExerciseToDb = async (userId: string, description: string, durationNum: number, date: string) => {
+    const dateToUse = date ? new Date(date) : new Date()
     const exerciseDetails: ExerciseDetails = {
         description: description,
         duration: durationNum,
-        date: date ? new Date(date).toDateString() : new Date().toDateString()
+        date: dateToUse.toUTCString()
     }
 
     // finding the user object by their ID
@@ -117,7 +113,7 @@ export const createAndSaveExerciseToDb = async (userId: string, description: str
     if (user) {
         user.description = exerciseDetails.description
         user.duration = exerciseDetails.duration
-        user.date = exerciseDetails.date
+        user.date = dateToUse.toDateString()
 
         const exerciseObjAndUsername = new ExerciseModel({
             username: user.username,
@@ -140,16 +136,16 @@ export const fetchExerciseLogs = async (
     const foundId: User | null = await UserModel.findById(userId)
 
     // using username to find exercises associated with it
-    const exerciseQuery: ExerciseQuery = {}
+    const exerciseQuery: mongoose.FilterQuery<Exercise> = {}
     if (foundId) {
         exerciseQuery.username = foundId.username;
     }
 
     // if there are request queries for date, add those to the query object
     if (from && to) {
-        const fromDate = new Date(from).toDateString()
-        const toDate = new Date(to).toDateString()
-        exerciseQuery.date = { $gte: fromDate, $lte: toDate };
+        const fromDateUTCString = new Date(from).toUTCString()
+        const toDateUTCString = new Date(to).toUTCString()
+        exerciseQuery.date = { $gte: fromDateUTCString, $lte: toDateUTCString };
     }
 
     // if there is a limit query, change it to a number
@@ -161,7 +157,7 @@ export const fetchExerciseLogs = async (
 
     // find all exercises in the db that match the username and any date and/or limit queries
     const foundExercises = await ExerciseModel.find(exerciseQuery).limit(limitNumber).exec()
- 
+
     const logArray: ExerciseDetails[] | undefined = foundExercises.map((exercise) => {
         return {
             description: exercise.description,
