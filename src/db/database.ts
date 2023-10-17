@@ -40,7 +40,7 @@ interface FetchExerciseLogsResult {
 
 type ExerciseLog = ExerciseDetails[] | undefined;
 
-interface exerciseQuery {
+interface ExerciseQuery {
     username?: string,
     date?: string | Date | object
 }
@@ -137,11 +137,10 @@ export const fetchExerciseLogs = async (
     to?: string,
     limit?: string
 ): Promise<FetchExerciseLogsResult | undefined> => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const foundId: User | null = await UserModel.findById(userId)
 
     // using username to find exercises associated with it
-    const exerciseQuery: exerciseQuery = {}
+    const exerciseQuery: ExerciseQuery = {}
     if (foundId) {
         exerciseQuery.username = foundId.username;
     }
@@ -162,7 +161,7 @@ export const fetchExerciseLogs = async (
 
     // find all exercises in the db that match the username and any date and/or limit queries
     const foundExercises = await ExerciseModel.find(exerciseQuery).limit(limitNumber).exec()
-    console.log("limit number", limitNumber)
+ 
     const logArray: ExerciseDetails[] | undefined = foundExercises.map((exercise) => {
         return {
             description: exercise.description,
