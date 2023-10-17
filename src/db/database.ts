@@ -103,7 +103,7 @@ export const createAndSaveExerciseToDb = async (userId: string, description: str
     const exerciseDetails: ExerciseDetails = {
         description: description,
         duration: durationNum,
-        date: dateToUse.toUTCString()
+        date: dateToUse.toISOString()
     }
 
     // finding the user object by their ID
@@ -143,8 +143,8 @@ export const fetchExerciseLogs = async (
 
     // if there are request queries for date, add those to the query object
     if (from && to) {
-        const fromDateUTCString = new Date(from).toUTCString()
-        const toDateUTCString = new Date(to).toUTCString()
+        const fromDateUTCString = new Date(from).toISOString()
+        const toDateUTCString = new Date(to).toISOString()
         exerciseQuery.date = { $gte: fromDateUTCString, $lte: toDateUTCString };
     }
 
@@ -153,7 +153,6 @@ export const fetchExerciseLogs = async (
     if (limit) {
         limitNumber = parseFloat(limit);
     }
-    console.log("exerciseQuery", exerciseQuery)
 
     // find all exercises in the db that match the username and any date and/or limit queries
     const foundExercises = await ExerciseModel.find(exerciseQuery).limit(limitNumber).exec()
