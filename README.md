@@ -1,4 +1,4 @@
-# Nicole's Exercise Tracker
+# Nicole's Exercise Tracker Microservice
 
 ![Screenshot from 2023-10-18 14-08-23](https://github.com/nicole-lancaster/exercise-tracker-project/assets/116457977/f335af14-9721-412a-beab-095f8ddf2ea6)
 
