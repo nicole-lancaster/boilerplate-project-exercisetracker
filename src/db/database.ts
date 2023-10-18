@@ -2,12 +2,12 @@ import mongoose, { HydratedDocument, connect, model } from "mongoose";
 import { config } from "dotenv"
 config();
 
-// 1. defining the type (shape) of the env variables
+// defining the type (shape) of the env variables
 type EnvVariables = {
     MONGO_URI: string;
 };
 
-// 2. creating an interface representing a document in MongoDB
+// creating an interface representing a document in MongoDB
 interface User {
     _id: string;
     username: string;
@@ -40,14 +40,13 @@ interface FetchExerciseLogsResult {
 
 type ExerciseLog = ExerciseDetails[] | undefined;
 
-// 3. create a schema corresponding to the document (rows) interface
+// create a schema corresponding to the document (rows) interface
 const UserSchema = new mongoose.Schema<User>(
     {
         username: { type: String, required: true },
         description: { type: String, required: false },
         duration: { type: Number, required: false },
         date: { type: String, required: false },
-        // exercises?: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Exercise' }],
     },
     { versionKey: false },
 );
@@ -62,42 +61,42 @@ const ExerciseSchema = new mongoose.Schema<Exercise>(
     { versionKey: false },
 );
 
-// 4. create a model - this allows you to create instances of your objects, called documents
+// create a model - this allows you to create instances of your objects, called documents
 const UserModel = model<User>("Username", UserSchema);
 const ExerciseModel = model<Exercise>("Exercise", ExerciseSchema);
 
-// 5. connecting to mongoDB
+// connecting to mongoDB
 connect((process.env as EnvVariables).MONGO_URI);
 
-// 6. checking if user inputted url is already in db
+// checking if username is already in db
 export const createOrSaveUsernameToDb = async (username: string) => {
-    // 7. if it is, return that one already saved to the user
-    const foundUsername = await UserModel.findOne({ username });
-    let savedUsername: User;
-    if (foundUsername) {
-        savedUsername = foundUsername;
-        return savedUsername
+    // if it is, return that that user object to the user
+    const foundUser = await UserModel.findOne({ username });
+    let savedUser: User;
+    if (foundUser) {
+        savedUser = foundUser;
+        return savedUser
     }
-    // 8. otherwise, creating a new instance of a username and saving to db
+    // otherwise, creating a new instance of a user and saving to db
     else {
-        const newUsername: HydratedDocument<User> = new UserModel({ username });
-        const currentObjId = newUsername._id
+        const newUser: HydratedDocument<User> = new UserModel({ username });
+        const currentObjId = newUser._id
         const newObjIdString = currentObjId.toString()
-        savedUsername = await newUsername.save();
-        const foundNewlySavedUsername = await UserModel.findOne(
+        savedUser = await newUser.save();
+        const foundNewlySavedUser = await UserModel.findOne(
             { username, _id: newObjIdString }
         );
-        return foundNewlySavedUsername;
+        return foundNewlySavedUser;
     }
 }
 
-// 9. returning a list of all saved users
+// returning a list of all saved users
 export const fetchAllUsers = async () => {
     const fetchedUsers: User[] = await UserModel.find()
     return fetchedUsers
 }
 
-// 10. adding and saving exercises data based on user ID
+// adding and saving exercises data based on user ID
 export const createAndSaveExerciseToDb = async (userId: string, description: string, durationNum: number, date: string) => {
     const dateToUse = date ? new Date(date) : new Date()
     const exerciseDetails: ExerciseDetails = {
@@ -157,19 +156,21 @@ export const fetchExerciseLogs = async (
     // find all exercises in the db that match the username and any date and/or limit queries
     const foundExercises = await ExerciseModel.find(exerciseQuery).limit(limitNumber).exec()
 
+    // map through all found exercises to return only the description, date and duration properties
     const logArray: ExerciseDetails[] | undefined = foundExercises.map((exercise) => {
-        const d = exercise.date ? new Date(exercise.date) : undefined
+        const dateObj = exercise.date ? new Date(exercise.date) : undefined
         return {
             description: exercise.description,
             duration: exercise.duration,
-            date: d?.toDateString(),
+            date: dateObj?.toDateString(),
         };
     })
 
     const numOfExercises: number = logArray.length;
 
+    //  creating log repsonse object
     const exerciseLog: FetchExerciseLogsResult = {
-        username: foundExercises[0]?.username || "",
+        username: foundExercises[0]?.username || "no username found",
         count: numOfExercises,
         _id: userId,
         log: logArray.length > 0 ? logArray : []

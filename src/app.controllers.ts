@@ -45,12 +45,6 @@ export const postExerciseById = async (request: Express.Request, response: Expre
     }
 }
 
-/**
- * from and to are dates in yyyy-mm-dd format. limit is an integer of how many logs to send back.
- * @param request 
- * @param response 
- * @returns 
- */
 export const getExerciseLogById = async (request: Express.Request, response: Express.Response) => {
     const userId = request.params._id
     const from = request.query.from as string | undefined
