@@ -1,6 +1,7 @@
 # Nicole's Exercise Tracker
 
 A simple microservice where users can create a username, submit exercises with details including duration, description and date. Users can also receive a log of all the exercises they have posted. 
+Published via Replit --> https://nicoles-exercise-tracker.nicole-lancaste.repl.co/
 
 ## Description
 This is a microservice project built as part of the freeCodeCamp backend and API certification (project 4 of 5). As this is a back-end project, there is no front-end, only a small UI of basic HTML and CSS which is served by the server. Instructions, test cases and example JSON responses can be found here: https://www.freecodecamp.org/learn/apis-and-microservices/apis-and-microservices-projects/exercise-tracker
