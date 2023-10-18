@@ -1,4 +1,4 @@
-# Exercise Tracker
+# Nicole's Exercise Tracker
 
 A simple microservice to create a login. Hosted on Replit --> 
 
