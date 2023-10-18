@@ -1,5 +1,8 @@
 # Nicole's Exercise Tracker
 
+![Screenshot from 2023-10-18 14-08-23](https://github.com/nicole-lancaster/exercise-tracker-project/assets/116457977/f335af14-9721-412a-beab-095f8ddf2ea6)
+
+
 A simple microservice where users can create a username, submit exercises with details including duration, description and date. Users can also receive a log of all the exercises they have posted. 
 Published via Replit --> https://nicoles-exercise-tracker.nicole-lancaste.repl.co/
 
