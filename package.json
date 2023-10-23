@@ -4,14 +4,14 @@
 	"description": "A REST API exercise tracker project, part of Free Code Camp's back end and API certfication.",
 	"main": "index.js",
 	"scripts": {
-		"start": "ts-node index.ts"
+		"start": "ts-node index.ts",
+		"build": "tsc"
 	},
 	"dependencies": {
 		"cors": "^2.8.5",
 		"dotenv": "^8.2.0",
 		"express": "^4.16.4",
-		"mongoose": "^7.5.3",
-		"ts-node": "^10.9.1"
+		"mongoose": "^7.5.3"
 	},
 	"repository": {
 		"url": "https://github.com/nicole-lancaster/boilerplate-project-exercisetracker"
@@ -32,6 +32,7 @@
 		"@typescript-eslint/eslint-plugin": "^6.7.4",
 		"@typescript-eslint/parser": "^6.7.4",
 		"eslint": "^8.50.0",
+		"ts-node": "^10.9.1",
 		"typescript": "^5.2.2"
 	}
 }
