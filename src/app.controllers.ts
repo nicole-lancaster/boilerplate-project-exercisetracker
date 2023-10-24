@@ -17,6 +17,7 @@ export const requestCreateOrSaveUsernameToDb = async (request: Express.Request, 
         return response.status(200).json(savedUsernameToDb)
     }
     catch (err) {
+        console.error(err)
         return response.status(500).json({ error: "unable to post username" });
     }
 }
