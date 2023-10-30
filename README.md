@@ -17,7 +17,7 @@ This is a microservice project built as part of the freeCodeCamp backend and API
 - MongoDB
 - Mongoose
 - Replit to host
-- Basic HTML and CSS UI
+- Basic HTML and CSS UI (server side rendered - front end coming soon!)
 
 ### Author
 [Nicole Lancaster](https://linktr.ee/nicolelancaster)
