@@ -1,1 +1,10 @@
 .replit
+.env
+node_modules
+./build
+.eslint
+tsconfig.json
+README.md
+.gitignore
+.gitattributes
+sample.env
