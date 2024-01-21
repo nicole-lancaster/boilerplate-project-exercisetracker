@@ -10,11 +10,11 @@ type EnvVariables = {
 // creating an interface representing a document in MongoDB
 interface User {
   _id: string;
-  username: string;
-  description?: string;
-  duration?: number;
-  date?: string | Date;
-  versionKey: false;
+  email: string;
+  password: string;
+  description?: string | undefined;
+  duration?: number | undefined;
+  date?: string | undefined;
 }
 
 interface ExerciseDetails {
@@ -25,7 +25,7 @@ interface ExerciseDetails {
 
 interface Exercise {
   _id: string;
-  username?: User["username"];
+  email?: User["email"];
   description?: string | undefined;
   duration?: number | undefined;
   date?: string | undefined;
@@ -43,17 +43,27 @@ type ExerciseLog = ExerciseDetails[] | undefined;
 // create a schema corresponding to the document (rows) interface
 const UserSchema = new mongoose.Schema<User>(
   {
-    username: { type: String, required: true },
-    description: { type: String, required: false },
-    duration: { type: Number, required: false },
-    date: { type: String, required: false },
+    email: {
+      type: String,
+      required: [true, "Please enter your email address"],
+      unique: true,
+      lowercase: true,
+    },
+    password: {
+      type: String,
+      required: [true, "Please enter a password"],
+      minlength: [8, "Minimum password length is 8 characters"],
+    },
+    date: { type: String },
+    description: { type: String },
+    duration: { type: Number },
   },
   { versionKey: false },
 );
 
 const ExerciseSchema = new mongoose.Schema<Exercise>(
   {
-    username: { type: String, required: true },
+    email: { type: String, required: true },
     description: { type: String, required: true },
     duration: { type: Number, required: true },
     date: { type: String, required: false },
@@ -62,7 +72,7 @@ const ExerciseSchema = new mongoose.Schema<Exercise>(
 );
 
 // create a model - this allows you to create instances of your objects, called documents
-const UserModel = model<User>("Username", UserSchema);
+const UserModel = model<User>("User", UserSchema);
 const ExerciseModel = model<Exercise>("Exercise", ExerciseSchema);
 
 // connecting to mongoDB
@@ -121,7 +131,7 @@ export const createAndSaveExerciseToDb = async (
     user.date = dateToUse.toDateString();
 
     const exerciseObjAndUsername = new ExerciseModel({
-      username: user.username,
+      username: user.email,
       ...exerciseDetails,
     });
     await exerciseObjAndUsername.save();
@@ -143,7 +153,7 @@ export const fetchExerciseLogs = async (
   // using username to find exercises associated with it
   const exerciseQuery: mongoose.FilterQuery<Exercise> = {};
   if (foundId) {
-    exerciseQuery.username = foundId.username;
+    exerciseQuery.username = foundId.email;
   }
 
   // if there are request queries for date, add those to the query object
@@ -180,7 +190,7 @@ export const fetchExerciseLogs = async (
 
   //  creating log repsonse object
   const exerciseLog: FetchExerciseLogsResult = {
-    username: foundExercises[0]?.username || "no username found",
+    username: foundExercises[0]?.email || "no username found",
     count: numOfExercises,
     _id: userId,
     log: logArray.length > 0 ? logArray : [],
