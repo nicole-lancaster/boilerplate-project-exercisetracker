@@ -17,18 +17,18 @@ interface User {
   date?: string | undefined;
 }
 
-interface ExerciseDetails {
-  description?: string;
-  duration?: number;
-  date?: string;
-}
-
 interface Exercise {
   _id: string;
   email?: User["email"];
   description?: string | undefined;
   duration?: number | undefined;
   date?: string | undefined;
+}
+
+interface ExerciseDetails {
+  description?: string;
+  duration?: number;
+  date?: string;
 }
 
 interface FetchExerciseLogsResult {
