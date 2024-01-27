@@ -6,11 +6,18 @@ import {
   fetchExerciseLogs,
 } from "./db/database";
 
+// Error handlers
+// const handleErrors = (error: Error) => {
+//   console.log(error.message, error.stack);
+//   return error;
+// };
+
 export const getHtml = (
   _request: Express.Request,
   response: Express.Response,
 ) => {
   try {
+    console.log("in getHtml function");
     return response.status(200).sendFile(`${__dirname}/views/index.html`);
   } catch (err) {
     return response.status(500).json({ error: "unable to fetch static files" });
@@ -21,13 +28,19 @@ export const requestCreateOrSaveUsernameToDb = async (
   request: Express.Request,
   response: Express.Response,
 ) => {
-  const username: string = request.body.username;
+  const { email, password } = request.body;
+  console.log("request.body -->", request.body);
   try {
-    const savedUsernameToDb = await createOrSaveUsernameToDb(username);
-    return response.status(200).json(savedUsernameToDb);
-  } catch (err) {
-    console.error(err);
-    return response.status(500).send({ error: "unable to post username" });
+    const savedUserToDb = await createOrSaveUsernameToDb({
+      email,
+      password,
+    });
+    console.log("savedUserToDb -->", savedUserToDb);
+    return response.status(200).json(savedUserToDb);
+  } catch (error: unknown) {
+    // handleErrors(error as Error);
+    console.error(error);
+    return response.status(500).send({ error: "unable to save user" });
   }
 };
 

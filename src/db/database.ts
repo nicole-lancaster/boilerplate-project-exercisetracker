@@ -1,4 +1,5 @@
 import mongoose, { HydratedDocument, connect, model } from "mongoose";
+import { isEmail } from "validator";
 import { config } from "dotenv";
 config();
 
@@ -32,7 +33,7 @@ interface ExerciseDetails {
 }
 
 interface FetchExerciseLogsResult {
-  username: string;
+  email: string;
   count: number;
   _id: User["_id"];
   log: ExerciseLog | string;
@@ -48,15 +49,16 @@ const UserSchema = new mongoose.Schema<User>(
       required: [true, "Please enter your email address"],
       unique: true,
       lowercase: true,
+      validate: [isEmail, "Invalid email"],
     },
     password: {
       type: String,
       required: [true, "Please enter a password"],
       minlength: [8, "Minimum password length is 8 characters"],
     },
-    date: { type: String },
-    description: { type: String },
-    duration: { type: Number },
+    date: { type: String, required: false },
+    description: { type: String, required: false },
+    duration: { type: Number, required: false },
   },
   { versionKey: false },
 );
@@ -78,10 +80,16 @@ const ExerciseModel = model<Exercise>("Exercise", ExerciseSchema);
 // connecting to mongoDB
 connect((process.env as EnvVariables).MONGO_URI);
 
-// checking if username is already in db
-export const createOrSaveUsernameToDb = async (username: string) => {
+// checking if email is already in db
+export const createOrSaveUsernameToDb = async ({
+  email,
+  password,
+}: {
+  email: string;
+  password: string;
+}) => {
   // if it is, return that that user object to the user
-  const foundUser = await UserModel.findOne({ username });
+  const foundUser = await UserModel.findOne({ email, password });
   let savedUser: User;
   if (foundUser) {
     savedUser = foundUser;
@@ -89,12 +97,12 @@ export const createOrSaveUsernameToDb = async (username: string) => {
   }
   // otherwise, creating a new instance of a user and saving to db
   else {
-    const newUser: HydratedDocument<User> = new UserModel({ username });
+    const newUser: HydratedDocument<User> = new UserModel({ email, password });
     const currentObjId = newUser._id;
     const newObjIdString = currentObjId.toString();
     savedUser = await newUser.save();
     const foundNewlySavedUser = await UserModel.findOne({
-      username,
+      email,
       _id: newObjIdString,
     });
     return foundNewlySavedUser;
@@ -131,7 +139,7 @@ export const createAndSaveExerciseToDb = async (
     user.date = dateToUse.toDateString();
 
     const exerciseObjAndUsername = new ExerciseModel({
-      username: user.email,
+      email: user.email,
       ...exerciseDetails,
     });
     await exerciseObjAndUsername.save();
@@ -150,10 +158,10 @@ export const fetchExerciseLogs = async (
 ): Promise<FetchExerciseLogsResult | undefined> => {
   const foundId: User | null = await UserModel.findById(userId);
 
-  // using username to find exercises associated with it
+  // using email to find exercises associated with it
   const exerciseQuery: mongoose.FilterQuery<Exercise> = {};
   if (foundId) {
-    exerciseQuery.username = foundId.email;
+    exerciseQuery.email = foundId.email;
   }
 
   // if there are request queries for date, add those to the query object
@@ -169,7 +177,7 @@ export const fetchExerciseLogs = async (
     limitNumber = parseFloat(limit);
   }
 
-  // find all exercises in the db that match the username and any date and/or limit queries
+  // find all exercises in the db that match the email and any date and/or limit queries
   const foundExercises = await ExerciseModel.find(exerciseQuery)
     .limit(limitNumber)
     .exec();
@@ -190,7 +198,7 @@ export const fetchExerciseLogs = async (
 
   //  creating log repsonse object
   const exerciseLog: FetchExerciseLogsResult = {
-    username: foundExercises[0]?.email || "no username found",
+    email: foundExercises[0]?.email || "no email found",
     count: numOfExercises,
     _id: userId,
     log: logArray.length > 0 ? logArray : [],
