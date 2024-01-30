@@ -63,6 +63,18 @@ const UserSchema = new mongoose.Schema<User>(
   { versionKey: false },
 );
 
+// fire a function after doc saved to db - post is not to do with the http request - means post saving doc
+UserSchema.post("save", function (doc, next) {
+  console.log("new user created and saved:", doc);
+  next();
+});
+
+// fire a function before doc saved to db
+UserSchema.pre("save", function (next) {
+  console.log("user about to be created and saved", this);
+  next();
+});
+
 const ExerciseSchema = new mongoose.Schema<Exercise>(
   {
     email: { type: String, required: true },
