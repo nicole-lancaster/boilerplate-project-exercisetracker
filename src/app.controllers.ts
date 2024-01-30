@@ -6,18 +6,44 @@ import {
   fetchExerciseLogs,
 } from "./db/database";
 
-// Error handlers
-// const handleErrors = (error: Error) => {
-//   console.log(error.message, error.stack);
-//   return error;
-// };
+interface ValidationError {
+  properties: {
+    path: string;
+    message: string;
+  };
+}
+
+interface CustomError extends Error {
+  errors?: Record<string, ValidationError>;
+  code?: number;
+}
+
+// handle errors
+const handleErrors = (err: CustomError): Record<string, string> => {
+  console.log(err.message, err.code);
+  const errors: Record<string, string> = { email: "", password: "" };
+
+  // duplicate email error
+  if (err.code === 11000) {
+    errors.email = "email is already registered";
+    return errors;
+  }
+
+  // validation errors
+  if (err.message.includes("User validation failed") && err.errors) {
+    Object.values(err.errors).forEach(({ properties }) => {
+      errors[properties.path] = properties.message;
+    });
+  }
+
+  return errors;
+};
 
 export const getHtml = (
   _request: Express.Request,
   response: Express.Response,
 ) => {
   try {
-    console.log("in getHtml function");
     return response.status(200).sendFile(`${__dirname}/views/index.html`);
   } catch (err) {
     return response.status(500).json({ error: "unable to fetch static files" });
@@ -29,18 +55,15 @@ export const requestCreateOrSaveUsernameToDb = async (
   response: Express.Response,
 ) => {
   const { email, password } = request.body;
-  console.log("request.body -->", request.body);
   try {
     const savedUserToDb = await createOrSaveUsernameToDb({
       email,
       password,
     });
-    console.log("savedUserToDb -->", savedUserToDb);
     return response.status(200).json(savedUserToDb);
-  } catch (error: unknown) {
-    // handleErrors(error as Error);
-    console.error(error);
-    return response.status(500).send({ error: "unable to save user" });
+  } catch (err: unknown) {
+    const errors = handleErrors(err as Error);
+    return response.status(500).json({ errors });
   }
 };
 
