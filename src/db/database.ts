@@ -1,5 +1,6 @@
 import mongoose, { HydratedDocument, connect, model } from "mongoose";
 import { isEmail } from "validator";
+import bcrypt from "bcrypt";
 import { config } from "dotenv";
 config();
 
@@ -63,14 +64,10 @@ const UserSchema = new mongoose.Schema<User>(
   { versionKey: false },
 );
 
-// fire a function after doc saved to db - post is not to do with the http request - means post saving doc
-UserSchema.post("save", function (doc, next) {
-  console.log("new user created and saved:", doc);
-  next();
-});
-
 // fire a function before doc saved to db
-UserSchema.pre("save", function (next) {
+UserSchema.pre("save", async function (next) {
+  const salt = await bcrypt.genSalt();
+  this.password = await bcrypt.hash(this.password, salt);
   console.log("user about to be created and saved", this);
   next();
 });
