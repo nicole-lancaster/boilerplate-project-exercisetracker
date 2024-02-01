@@ -64,14 +64,6 @@ const UserSchema = new mongoose.Schema<User>(
   { versionKey: false },
 );
 
-// fire a function before doc saved to db
-UserSchema.pre("save", async function (next) {
-  const salt = await bcrypt.genSalt();
-  this.password = await bcrypt.hash(this.password, salt);
-  console.log("user about to be created and saved", this);
-  next();
-});
-
 const ExerciseSchema = new mongoose.Schema<Exercise>(
   {
     email: { type: String, required: true },
@@ -89,7 +81,7 @@ const ExerciseModel = model<Exercise>("Exercise", ExerciseSchema);
 // connecting to mongoDB
 connect((process.env as EnvVariables).MONGO_URI);
 
-// checking if email is already in db
+// checking if user is already in db
 export const createOrSaveUsernameToDb = async ({
   email,
   password,
@@ -98,7 +90,7 @@ export const createOrSaveUsernameToDb = async ({
   password: string;
 }) => {
   // if it is, return that that user object to the user
-  const foundUser = await UserModel.findOne({ email, password });
+  const foundUser = await UserModel.findOne({ email });
   let savedUser: User;
   if (foundUser) {
     savedUser = foundUser;
@@ -106,15 +98,14 @@ export const createOrSaveUsernameToDb = async ({
   }
   // otherwise, creating a new instance of a user and saving to db
   else {
-    const newUser: HydratedDocument<User> = new UserModel({ email, password });
-    const currentObjId = newUser._id;
-    const newObjIdString = currentObjId.toString();
-    savedUser = await newUser.save();
-    const foundNewlySavedUser = await UserModel.findOne({
+    const salt: string = await bcrypt.genSalt();
+    const hashedPassword: string = await bcrypt.hash(password, salt);
+    const newUser: HydratedDocument<User> = new UserModel({
       email,
-      _id: newObjIdString,
+      password: hashedPassword,
     });
-    return foundNewlySavedUser;
+    savedUser = await newUser.save();
+    return savedUser;
   }
 };
 
