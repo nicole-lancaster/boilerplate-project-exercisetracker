@@ -118,3 +118,24 @@ export const getExerciseLogById = async (
       .json({ error: "unable to fetch exercise logs" });
   }
 };
+
+export const setCookies = (
+  request: Express.Request,
+  response: Express.Response,
+) => {
+  response.cookie("newUser", false);
+  response.cookie("isEmployee", true, {
+    maxAge: 1000 * 60 * 60 * 24,
+    httpOnly: true,
+  });
+  return response.send("you got the cookies!");
+};
+
+export const readCookies = (
+  request: Express.Request,
+  response: Express.Response,
+) => {
+  const cookies = request.cookies;
+  console.log(cookies);
+  response.json(cookies);
+};
