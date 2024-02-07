@@ -60,7 +60,15 @@ export const requestCreateOrSaveUsernameToDb = async (
       email,
       password,
     });
-    return response.status(200).json(savedUserToDb);
+    if (savedUserToDb.token) {
+      // Send the token as part of the response
+      console.log(savedUserToDb);
+      return response
+        .status(200)
+        .json({ user: savedUserToDb, token: savedUserToDb.token });
+    } else {
+      return response.status(200).json({ user: savedUserToDb });
+    }
   } catch (err: unknown) {
     const errors = handleErrors(err as Error);
     return response.status(500).json({ errors });

@@ -3,10 +3,12 @@ import { isEmail } from "validator";
 import bcrypt from "bcrypt";
 import { config } from "dotenv";
 config();
+import jwt from "jsonwebtoken";
 
 // defining the type (shape) of the env variables
 type EnvVariables = {
   MONGO_URI: string;
+  JWT_SECRET: string;
 };
 
 // creating an interface representing a document in MongoDB
@@ -14,6 +16,7 @@ interface User {
   _id: string;
   email: string;
   password: string;
+  token?: string;
   description?: string | undefined;
   duration?: number | undefined;
   date?: string | undefined;
@@ -104,8 +107,18 @@ export const createOrSaveUsernameToDb = async ({
       email,
       password: hashedPassword,
     });
-    savedUser = await newUser.save();
-    return savedUser;
+
+    const createToken = (id: string) => {
+      return jwt.sign({ id }, (process.env as EnvVariables).JWT_SECRET, {
+        expiresIn: 9000,
+      });
+    };
+
+    const newToken = createToken(newUser._id);
+    localStorage.setItem("token", newToken);
+
+    const savedUser = await newUser.save();
+    return { user: savedUser, token: newToken };
   }
 };
 
