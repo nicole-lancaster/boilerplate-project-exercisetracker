@@ -1,10 +1,12 @@
 import Express from "express";
 import {
+  EnvVariables,
   createAndSaveExerciseToDb,
   createOrSaveUsernameToDb,
   fetchAllUsers,
   fetchExerciseLogs,
 } from "./db/database";
+import jwt from "jsonwebtoken";
 
 interface ValidationError {
   properties: {
@@ -60,12 +62,17 @@ export const requestCreateOrSaveUsernameToDb = async (
       email,
       password,
     });
-    if (savedUserToDb.token) {
-      // Send the token as part of the response
-      console.log(savedUserToDb);
+    const createToken = (id: string) => {
+      return jwt.sign({ id }, (process.env as EnvVariables).JWT_SECRET, {
+        expiresIn: 9000,
+      });
+    };
+
+    const newToken = createToken(savedUserToDb._id);
+    if (newToken) {
       return response
         .status(200)
-        .json({ user: savedUserToDb, token: savedUserToDb.token });
+        .json({ user: savedUserToDb, token: newToken });
     } else {
       return response.status(200).json({ user: savedUserToDb });
     }
