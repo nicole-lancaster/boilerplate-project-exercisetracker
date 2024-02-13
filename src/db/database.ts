@@ -4,13 +4,11 @@ import bcrypt from "bcrypt";
 import { config } from "dotenv";
 config();
 
-// defining the type (shape) of the env variables
 export type EnvVariables = {
   MONGO_URI: string;
   JWT_SECRET: string;
 };
 
-// creating an interface representing a document in MongoDB
 interface User {
   _id: string;
   email: string;
@@ -44,7 +42,6 @@ interface FetchExerciseLogsResult {
 
 type ExerciseLog = ExerciseDetails[] | undefined;
 
-// create a schema corresponding to the document (rows) interface
 const UserSchema = new mongoose.Schema<User>(
   {
     email: {
@@ -76,40 +73,31 @@ const ExerciseSchema = new mongoose.Schema<Exercise>(
   { versionKey: false },
 );
 
-// create a model - this allows you to create instances of your objects, called documents
 const UserModel = model<User>("User", UserSchema);
 const ExerciseModel = model<Exercise>("Exercise", ExerciseSchema);
 
-// connecting to mongoDB
 connect((process.env as EnvVariables).MONGO_URI);
 
-// checking if user is already in db
-export const createOrSaveUsernameToDb = async ({
+export const saveNewUserToDb = async ({
   email,
   password,
 }: {
   email: string;
   password: string;
 }) => {
-  // if it is, return that that user object to the user
-  const foundUser = await UserModel.findOne({ email });
-  let savedUser: User;
-  if (foundUser) {
-    savedUser = foundUser;
-    return savedUser;
-  }
-  // otherwise, creating a new instance of a user and saving to db
-  else {
-    const salt: string = await bcrypt.genSalt();
-    const hashedPassword: string = await bcrypt.hash(password, salt);
-    const newUser: HydratedDocument<User> = new UserModel({
-      email,
-      password: hashedPassword,
-    });
+  const salt: string = await bcrypt.genSalt();
+  const hashedPassword: string = await bcrypt.hash(password, salt);
+  const newUser: HydratedDocument<User> = new UserModel({
+    email,
+    password: hashedPassword,
+  });
+  const savedUser = await newUser.save();
+  return savedUser;
+};
 
-    const savedUser = await newUser.save();
-    return savedUser;
-  }
+export const fetchExistingUser = async ({ email }: { email: string }) => {
+  const foundUser: User | null = await UserModel.findOne({ email });
+  return foundUser;
 };
 
 // returning a list of all saved users

@@ -2,9 +2,10 @@ import Express from "express";
 import {
   EnvVariables,
   createAndSaveExerciseToDb,
-  createOrSaveUsernameToDb,
+  saveNewUserToDb,
   fetchAllUsers,
   fetchExerciseLogs,
+  fetchExistingUser,
 } from "./db/database";
 import jwt from "jsonwebtoken";
 
@@ -52,13 +53,13 @@ export const getHtml = (
   }
 };
 
-export const requestCreateOrSaveUsernameToDb = async (
+export const signUpNewUser = async (
   request: Express.Request,
   response: Express.Response,
 ) => {
   const { email, password } = request.body;
   try {
-    const savedUserToDb = await createOrSaveUsernameToDb({
+    const savedUserToDb = await saveNewUserToDb({
       email,
       password,
     });
@@ -67,23 +68,34 @@ export const requestCreateOrSaveUsernameToDb = async (
         expiresIn: 9000,
       });
     };
-
     const newToken = createToken(savedUserToDb._id);
-    if (newToken) {
-      return response
-        .status(200)
-        .json({ user: savedUserToDb, token: newToken });
-    } else {
-      return response.status(200).json({ user: savedUserToDb });
-    }
+    return response.status(200).json({ user: savedUserToDb, token: newToken });
   } catch (err: unknown) {
     const errors = handleErrors(err as Error);
     return response.status(500).json({ errors });
   }
 };
 
-export const getAllUsers = async (
+export const getExistingUser = async (
   request: Express.Request,
+  response: Express.Response,
+) => {
+  const { email } = request.body;
+  try {
+    const fetchedUser = await fetchExistingUser(email);
+    if (fetchedUser) {
+      console.log(fetchedUser);
+    }
+    return fetchedUser;
+  } catch (error: unknown) {
+    console.error(error);
+    const errors = handleErrors(error as Error);
+    return response.status(500).json({ errors });
+  }
+};
+
+export const getAllUsers = async (
+  _request: Express.Request,
   response: Express.Response,
 ) => {
   try {
