@@ -23,7 +23,7 @@ interface CustomError extends Error {
 
 // handle errors
 const handleErrors = (err: CustomError): Record<string, string> => {
-  console.log(err.message, err.code);
+  console.log("--->>>", err.message, err.code);
   const errors: Record<string, string> = { email: "", password: "" };
 
   // duplicate email error
@@ -44,7 +44,7 @@ const handleErrors = (err: CustomError): Record<string, string> => {
 
 export const getHtml = (
   _request: Express.Request,
-  response: Express.Response
+  response: Express.Response,
 ) => {
   try {
     return response.status(200).sendFile(`${__dirname}/views/index.html`);
@@ -55,7 +55,7 @@ export const getHtml = (
 
 export const signUpNewUser = async (
   request: Express.Request,
-  response: Express.Response
+  response: Express.Response,
 ) => {
   const { email, password } = request.body;
   try {
@@ -78,7 +78,7 @@ export const signUpNewUser = async (
 
 export const getExistingUser = async (
   request: Express.Request,
-  response: Express.Response
+  response: Express.Response,
 ) => {
   const email = request.query.email as string | undefined;
   if (!email) {
@@ -101,7 +101,7 @@ export const getExistingUser = async (
 
 export const getAllUsers = async (
   _request: Express.Request,
-  response: Express.Response
+  response: Express.Response,
 ) => {
   try {
     const allUsers = await fetchAllUsers();
@@ -113,7 +113,7 @@ export const getAllUsers = async (
 
 export const postExerciseById = async (
   request: Express.Request,
-  response: Express.Response
+  response: Express.Response,
 ) => {
   const userId = request.params._id;
   const { description, duration, date } = request.body;
@@ -123,7 +123,7 @@ export const postExerciseById = async (
       userId,
       description,
       durationNum,
-      date
+      date,
     );
     return response.status(200).json(savedExerciseData);
   } catch (err) {
@@ -134,7 +134,7 @@ export const postExerciseById = async (
 
 export const getExerciseLogById = async (
   request: Express.Request,
-  response: Express.Response
+  response: Express.Response,
 ) => {
   const userId = request.params._id;
   const from = request.query.from as string | undefined;

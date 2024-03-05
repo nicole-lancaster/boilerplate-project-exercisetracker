@@ -19,7 +19,7 @@ app.use(bodyParser.json());
 
 app.get("/", getHtml);
 app.post("/api/signupuser", signUpNewUser);
-app.get("api/loginuser", getExistingUser);
+app.get("/api/loginuser", getExistingUser);
 app.get("/api/users", getAllUsers);
 app.post("/api/users/:_id/exercises", postExerciseById);
 app.get("/api/users/:_id/logs", getExerciseLogById);
