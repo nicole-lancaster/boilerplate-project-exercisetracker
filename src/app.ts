@@ -7,7 +7,7 @@ import {
   postExerciseById,
   getExerciseLogById,
   getExistingUser,
-} from "./app.controllers";
+} from "./controllers/app.controllers";
 import bodyParser from "body-parser";
 export const app = express();
 

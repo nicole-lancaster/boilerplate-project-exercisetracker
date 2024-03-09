@@ -1,29 +1,16 @@
 import Express from "express";
+import { EnvVariables } from "../db/connectToDatabase";
+import jwt from "jsonwebtoken";
+import { CustomError } from "../types/errors.types";
 import {
-  EnvVariables,
   createAndSaveExerciseToDb,
-  saveNewUserToDb,
   fetchAllUsers,
   fetchExerciseLogs,
   fetchExistingUser,
-} from "./db/database";
-import jwt from "jsonwebtoken";
+  saveNewUserToDb,
+} from "../models/app.models";
 
-interface ValidationError {
-  properties: {
-    path: string;
-    message: string;
-  };
-}
-
-interface CustomError extends Error {
-  errors?: Record<string, ValidationError>;
-  code?: number;
-}
-
-// handle errors
 const handleErrors = (err: CustomError): Record<string, string> => {
-  console.log("--->>>", err.message, err.code);
   const errors: Record<string, string> = { email: "", password: "" };
 
   // duplicate email error
@@ -93,7 +80,6 @@ export const getExistingUser = async (
     }
     return response.status(404).json({ message: "User not found" });
   } catch (error: unknown) {
-    console.error(error);
     const errors = handleErrors(error as Error);
     return response.status(500).json({ errors });
   }
@@ -127,7 +113,6 @@ export const postExerciseById = async (
     );
     return response.status(200).json(savedExerciseData);
   } catch (err) {
-    console.log("error -->", err);
     return response.status(500).json({ error: "unable to post exercise" });
   }
 };
@@ -144,7 +129,6 @@ export const getExerciseLogById = async (
     const exerciseLogs = await fetchExerciseLogs(userId, from, to, limit);
     return response.status(200).json(exerciseLogs);
   } catch (err) {
-    console.log("error -->", err);
     return response
       .status(500)
       .json({ error: "unable to fetch exercise logs" });
