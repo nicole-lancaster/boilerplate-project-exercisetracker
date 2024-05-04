@@ -1,29 +1,17 @@
 import Express from "express";
+import { EnvVariables } from "../db/connectToDatabase";
+import jwt from "jsonwebtoken";
+import { CustomError } from "../types/errors.types";
 import {
-  EnvVariables,
   createAndSaveExerciseToDb,
-  saveNewUserToDb,
   fetchAllUsers,
   fetchExerciseLogs,
   fetchExistingUser,
-} from "./db/database";
-import jwt from "jsonwebtoken";
+  saveNewUserToDb,
+} from "../models/app.models";
+import { UserDetails } from "../types/users.types";
 
-interface ValidationError {
-  properties: {
-    path: string;
-    message: string;
-  };
-}
-
-interface CustomError extends Error {
-  errors?: Record<string, ValidationError>;
-  code?: number;
-}
-
-// handle errors
 const handleErrors = (err: CustomError): Record<string, string> => {
-  console.log("--->>>", err.message, err.code);
   const errors: Record<string, string> = { email: "", password: "" };
 
   // duplicate email error
@@ -54,21 +42,24 @@ export const getHtml = (
 };
 
 export const signUpNewUser = async (
-  request: Express.Request,
+  request: Express.Request<UserDetails>,
   response: Express.Response,
 ) => {
   const { email, password } = request.body;
   try {
-    const savedUserToDb = await saveNewUserToDb({
+    const savedUserToDb: UserDetails | undefined = await saveNewUserToDb({
       email,
       password,
     });
+    if (!savedUserToDb._id) {
+      return response.status(400).json({ error: "Signup failed." });
+    }
     const createToken = (id: string) => {
       return jwt.sign({ id }, (process.env as EnvVariables).JWT_SECRET, {
         expiresIn: 9000,
       });
     };
-    const newToken = createToken(savedUserToDb._id);
+    const newToken: string = createToken(savedUserToDb._id);
     return response.status(200).json({ user: savedUserToDb, token: newToken });
   } catch (err: unknown) {
     const errors = handleErrors(err as Error);
@@ -93,7 +84,6 @@ export const getExistingUser = async (
     }
     return response.status(404).json({ message: "User not found" });
   } catch (error: unknown) {
-    console.error(error);
     const errors = handleErrors(error as Error);
     return response.status(500).json({ errors });
   }
@@ -127,7 +117,6 @@ export const postExerciseById = async (
     );
     return response.status(200).json(savedExerciseData);
   } catch (err) {
-    console.log("error -->", err);
     return response.status(500).json({ error: "unable to post exercise" });
   }
 };
@@ -144,7 +133,6 @@ export const getExerciseLogById = async (
     const exerciseLogs = await fetchExerciseLogs(userId, from, to, limit);
     return response.status(200).json(exerciseLogs);
   } catch (err) {
-    console.log("error -->", err);
     return response
       .status(500)
       .json({ error: "unable to fetch exercise logs" });
