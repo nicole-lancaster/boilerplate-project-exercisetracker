@@ -1,7 +1,12 @@
+export interface UserSignUpOrLogin {
+  email: string;
+  password: string;
+}
+
 export interface UserDetails {
   email: string;
   password: string;
-  _id?: string;
+  _id: string;
 }
 
 export interface UserWithToken extends UserDetails {

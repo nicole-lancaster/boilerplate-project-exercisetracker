@@ -1,6 +1,7 @@
 import Express from "express";
 import { EnvVariables } from "../db/connectToDatabase";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 import { CustomError } from "../types/errors.types";
 import {
   createAndSaveExerciseToDb,
@@ -9,7 +10,7 @@ import {
   fetchExistingUser,
   saveNewUserToDb,
 } from "../models/app.models";
-import { UserDetails } from "../types/users.types";
+import { UserDetails, UserSignUpOrLogin } from "../types/users.types";
 
 const handleErrors = (err: CustomError): Record<string, string> => {
   const errors: Record<string, string> = { email: "", password: "" };
@@ -41,52 +42,45 @@ export const getHtml = (
   }
 };
 
-export const signUpNewUser = async (
-  request: Express.Request<UserDetails>,
+export const findOrSaveUser = async (
+  request: Express.Request<UserSignUpOrLogin>,
   response: Express.Response,
 ) => {
   const { email, password } = request.body;
+  if (!email || !password) {
+    return response
+      .status(400)
+      .json({ message: "Email and password are required" });
+  }
   try {
-    const savedUserToDb: UserDetails | undefined = await saveNewUserToDb({
-      email,
-      password,
-    });
-    if (!savedUserToDb._id) {
-      return response.status(400).json({ error: "Signup failed." });
+    let user: UserDetails | null = await fetchExistingUser({ email });
+    if (user) {
+      // if user exists, verify password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        return response.status(401).json({ message: "Invalid credentials" });
+      }
+    } else {
+      // if user doesn't exist, create new user
+      user = await saveNewUserToDb({ email, password });
+      if (!user || !user._id) {
+        return response.status(400).json({ error: "Signup failed." });
+      }
     }
-    const createToken = (id: string) => {
-      return jwt.sign({ id }, (process.env as EnvVariables).JWT_SECRET, {
-        expiresIn: 9000,
-      });
-    };
-    const newToken: string = createToken(savedUserToDb._id);
-    return response.status(200).json({ user: savedUserToDb, token: newToken });
+
+    // generate JWT token
+    const token: string = createToken(user._id);
+    return response.status(200).json({ user, token });
   } catch (err: unknown) {
     const errors = handleErrors(err as Error);
     return response.status(500).json({ errors });
   }
 };
 
-export const getExistingUser = async (
-  request: Express.Request,
-  response: Express.Response,
-) => {
-  const email = request.query.email as string | undefined;
-  if (!email) {
-    return response
-      .status(400)
-      .json({ message: "Email query parameter is missing" });
-  }
-  try {
-    const fetchedUser = await fetchExistingUser({ email });
-    if (fetchedUser) {
-      return response.status(200).json(fetchedUser);
-    }
-    return response.status(404).json({ message: "User not found" });
-  } catch (error: unknown) {
-    const errors = handleErrors(error as Error);
-    return response.status(500).json({ errors });
-  }
+const createToken = (id: string) => {
+  return jwt.sign({ id }, (process.env as EnvVariables).JWT_SECRET, {
+    expiresIn: 9000,
+  });
 };
 
 export const getAllUsers = async (

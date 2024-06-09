@@ -1,12 +1,11 @@
 import express from "express";
 import cors from "cors";
 import {
-  signUpNewUser,
+  findOrSaveUser,
   getHtml,
   getAllUsers,
   postExerciseById,
   getExerciseLogById,
-  getExistingUser,
 } from "./controllers/app.controllers";
 import bodyParser from "body-parser";
 export const app = express();
@@ -18,8 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.get("/", getHtml);
-app.post("/api/signupuser", signUpNewUser);
-app.get("/api/loginuser", getExistingUser);
+app.post("/api/signuporloginuser", findOrSaveUser);
 app.get("/api/users", getAllUsers);
 app.post("/api/users/:_id/exercises", postExerciseById);
 app.get("/api/users/:_id/logs", getExerciseLogById);

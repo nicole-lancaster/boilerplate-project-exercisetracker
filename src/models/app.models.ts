@@ -1,7 +1,7 @@
 import mongoose, { HydratedDocument } from "mongoose";
 import bcrypt from "bcrypt";
 import { config } from "dotenv";
-import { User } from "../types/users.types";
+import { User, UserDetails, UserSignUpOrLogin } from "../types/users.types";
 import { ExerciseModel, UserModel } from "../db/connectToDatabase";
 import {
   Exercise,
@@ -13,13 +13,10 @@ config();
 export const saveNewUserToDb = async ({
   email,
   password,
-}: {
-  email: string;
-  password: string;
-}) => {
+}: UserSignUpOrLogin) => {
   const salt: string = await bcrypt.genSalt();
   const hashedPassword: string = await bcrypt.hash(password, salt);
-  const newUser: HydratedDocument<User> = new UserModel({
+  const newUser: HydratedDocument<UserDetails> = new UserModel({
     email,
     password: hashedPassword,
   });
@@ -27,12 +24,19 @@ export const saveNewUserToDb = async ({
   return savedUser;
 };
 
-export const fetchExistingUser = async ({ email }: { email: string }) => {
-  const foundUser: User | null = await UserModel.findOne({ email });
+export const fetchExistingUser = async ({
+  email,
+}: {
+  email: string;
+}): Promise<UserDetails | null> => {
+  const foundUser: UserDetails | null = await UserModel.findOne({
+    email,
+  });
+
   return foundUser;
 };
 
-export const fetchAllUsers = async () => {
+export const fetchAllUsers = async (): Promise<UserDetails[] | null> => {
   const fetchedUsers: User[] = await UserModel.find();
   return fetchedUsers;
 };
