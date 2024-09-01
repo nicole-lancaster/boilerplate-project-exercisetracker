@@ -60,17 +60,19 @@ export const findOrSaveUser = async (
       if (!isPasswordValid) {
         return response.status(401).json({ message: "Invalid credentials" });
       }
+      // generate JWT token
+      const token: string = createToken(user._id);
+      return response.status(200).json({ user, token });
     } else {
       // if user doesn't exist, create new user
       user = await saveNewUserToDb({ email, password });
       if (!user || !user._id) {
-        return response.status(400).json({ error: "Signup failed." });
+        return response.status(400).json({ error: "Signup failed" });
       }
+      // generate JWT token
+      const token: string = createToken(user._id);
+      return response.status(201).json({ user, token });
     }
-
-    // generate JWT token
-    const token: string = createToken(user._id);
-    return response.status(200).json({ user, token });
   } catch (err: unknown) {
     const errors = handleErrors(err as Error);
     return response.status(500).json({ errors });
