@@ -19,6 +19,7 @@ export interface User {
   email: string;
   password: string;
   token?: string;
+  exerciseType: string;
   description?: string | undefined;
   duration?: number | undefined;
   date?: string | undefined;

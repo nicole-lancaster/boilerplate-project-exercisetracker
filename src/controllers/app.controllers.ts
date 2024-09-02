@@ -102,7 +102,7 @@ export const postExerciseById = async (
   response: Express.Response,
 ) => {
   const userId = request.params._id;
-  const { description, duration, date } = request.body;
+  const { description, duration, date, exerciseType } = request.body;
   const durationNum: number = parseFloat(duration);
   try {
     const savedExerciseData = await createAndSaveExerciseToDb(
@@ -110,6 +110,7 @@ export const postExerciseById = async (
       description,
       durationNum,
       date,
+      exerciseType,
     );
     return response.status(200).json(savedExerciseData);
   } catch (err) {

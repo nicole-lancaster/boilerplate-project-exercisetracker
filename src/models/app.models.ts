@@ -41,15 +41,20 @@ export const fetchAllUsers = async (): Promise<UserDetails[] | null> => {
   return fetchedUsers;
 };
 
+export const ExerciseTypes = ["swim", "bike", "run", "strength"] as const;
+export type ExerciseType = (typeof ExerciseTypes)[number];
+
 // adding and saving exercises data based on user ID
 export const createAndSaveExerciseToDb = async (
   userId: string,
   description: string,
   durationNum: number,
   date: string,
+  exerciseType: ExerciseType,
 ) => {
   const dateToUse = date ? new Date(date) : new Date();
   const exerciseDetails: ExerciseDetails = {
+    exerciseType: exerciseType,
     description: description,
     duration: durationNum,
     date: dateToUse.toISOString(),
@@ -109,16 +114,15 @@ export const fetchExerciseLogs = async (
     .exec();
 
   // map through all found exercises to return only the description, date and duration properties
-  const logArray: ExerciseDetails[] | undefined = foundExercises.map(
-    (exercise) => {
-      const dateObj = exercise.date ? new Date(exercise.date) : undefined;
-      return {
-        description: exercise.description,
-        duration: exercise.duration,
-        date: dateObj?.toDateString(),
-      };
-    },
-  );
+  const logArray: ExerciseDetails[] = foundExercises.map((exercise) => {
+    const dateObj = exercise.date ? new Date(exercise.date) : undefined;
+    return {
+      exerciseType: exercise.exerciseType,
+      description: exercise.description,
+      duration: exercise.duration,
+      date: dateObj?.toDateString(),
+    };
+  });
 
   const numOfExercises: number = logArray.length;
 

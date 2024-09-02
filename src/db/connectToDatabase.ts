@@ -27,6 +27,7 @@ const UserSchema = new mongoose.Schema<User>(
     date: { type: String, required: false },
     description: { type: String, required: false },
     duration: { type: Number, required: false },
+    exerciseType: { type: String, required: true },
   },
   { versionKey: false },
 );
