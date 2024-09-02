@@ -68,6 +68,7 @@ export const createAndSaveExerciseToDb = async (
     user.description = exerciseDetails.description;
     user.duration = exerciseDetails.duration;
     user.date = dateToUse.toDateString();
+    user.exerciseType = exerciseDetails.exerciseType;
 
     const exerciseObjAndUsername = new ExerciseModel({
       email: user.email,

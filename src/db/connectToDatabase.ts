@@ -3,6 +3,7 @@ import { isEmail } from "validator";
 import { config } from "dotenv";
 import { User } from "../types/users.types";
 import { Exercise } from "../types/exercise.types";
+import { ExerciseTypes } from "../models/app.models";
 config();
 
 export type EnvVariables = {
@@ -35,6 +36,7 @@ const UserSchema = new mongoose.Schema<User>(
 const ExerciseSchema = new mongoose.Schema<Exercise>(
   {
     email: { type: String, required: true },
+    exerciseType: { type: String, required: true },
     description: { type: String, required: true },
     duration: { type: Number, required: true },
     date: { type: String, required: false },
