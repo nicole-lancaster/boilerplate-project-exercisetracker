@@ -37,8 +37,8 @@ export const getHtml = (
 ) => {
   try {
     return response.status(200).sendFile(`${__dirname}/views/index.html`);
-  } catch (err) {
-    return response.status(500).json({ error: "unable to fetch static files" });
+  } catch (error) {
+    return response.status(500).json({ error });
   }
 };
 
@@ -92,8 +92,8 @@ export const getAllUsers = async (
   try {
     const allUsers = await fetchAllUsers();
     return response.status(200).send(allUsers);
-  } catch (err) {
-    return response.status(500).json({ error: "unable to fetch users" });
+  } catch (error) {
+    return response.status(500).json({ error });
   }
 };
 
@@ -113,8 +113,8 @@ export const postExerciseById = async (
       exerciseType,
     );
     return response.status(200).json(savedExerciseData);
-  } catch (err) {
-    return response.status(500).json({ error: "unable to post exercise" });
+  } catch (error) {
+    return response.status(500).json({ error });
   }
 };
 
@@ -129,9 +129,7 @@ export const getExerciseLogById = async (
   try {
     const exerciseLogs = await fetchExerciseLogs(userId, from, to, limit);
     return response.status(200).json(exerciseLogs);
-  } catch (err) {
-    return response
-      .status(500)
-      .json({ error: "unable to fetch exercise logs" });
+  } catch (error) {
+    return response.status(500).json({ error });
   }
 };
