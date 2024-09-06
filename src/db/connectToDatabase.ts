@@ -3,7 +3,6 @@ import { isEmail } from "validator";
 import { config } from "dotenv";
 import { User } from "../types/users.types";
 import { Exercise } from "../types/exercise.types";
-import { ExerciseTypes } from "../models/app.models";
 config();
 
 export type EnvVariables = {

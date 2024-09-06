@@ -74,7 +74,14 @@ export const findOrSaveUser = async (
       return response.status(201).json({ user, token });
     }
   } catch (err: unknown) {
+    console.log("-->", err);
     const errors = handleErrors(err as Error);
+
+    if (errors.email || errors.password) {
+      return response
+        .status(400)
+        .json({ message: "Invalid email or password" });
+    }
     return response.status(500).json({ errors });
   }
 };
